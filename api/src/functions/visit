@@ -1,0 +1,18 @@
+const { app } = require('@azure/functions');
+const { CosmosClient } = require('@azure/cosmos');
+
+const container = new CosmosClient(process.env.COSMOS_CONNECTION_STRING)
+  .database('portfolio')
+  .container('counters');
+
+app.http('visit', {
+  methods: ['GET', 'POST'],
+  authLevel: 'anonymous',
+  handler: async () => {
+    const { resource } = await container
+      .item('index', 'index')
+      .patch([{ op: 'incr', path: '/count', value: 1 }]);
+    return { jsonBody: { count: resource.count } };
+  }
+});
+
